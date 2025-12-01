@@ -1,7 +1,9 @@
 package database
 
 import (
+	"backend-go/internal/adapter/repository/postgres"
 	"backend-go/internal/domain"
+	"context"
 	"strings"
 
 	"gorm.io/gorm"
@@ -15,27 +17,31 @@ func NewPostgresRepository(db *gorm.DB) *PostgresRepository {
 	return &PostgresRepository{db: db}
 }
 
-func (r *PostgresRepository) Create(user *domain.User) error {
-	result := r.db.Create(user)
+func (r *PostgresRepository) Create(ctx context.Context, user *domain.User) error {
+	dbUser := postgres.FromDomain(user)
+
+	result := r.db.WithContext(ctx).Create(dbUser)
 
 	if result.Error != nil {
-		if strings.Contains(result.Error.Error(), "duplicate key value") {
+		if strings.Contains(result.Error.Error(), "duplicate key") {
 			return domain.ErrUserAlreadyExists
 		}
 		return result.Error
 	}
 
+	user.ID = dbUser.ID
+
 	return nil
 }
 
-func (r *PostgresRepository) FindByEmail(email string) (*domain.User, error) {
-	var user domain.User
+func (r *PostgresRepository) FindByEmail(ctx context.Context, email string) (*domain.User, error) {
+	var dbUser postgres.UserGormModel
 
-	result := r.db.Where("email = ?", email).First(&user)
+	result := r.db.WithContext(ctx).Where("email = ?", email).First(&dbUser)
 
 	if result.Error != nil {
 		return nil, result.Error
 	}
 
-	return &user, nil
+	return dbUser.ToDomain(), nil
 }
