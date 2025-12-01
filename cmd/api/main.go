@@ -1,40 +1,38 @@
 package main
 
 import (
-	"backend-go/internal/adapter/database"
-	"backend-go/internal/adapter/handler/http"
-	"backend-go/internal/usecase"
 	"log"
-	"os"
-
-	"github.com/gin-gonic/gin"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 )
 
 func main() {
-	dsn := os.Getenv("DATABASE_URL")
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
+	// 1. Load Configuration
+	cfg := LoadConfig()
+	if err := validateConfig(cfg); err != nil {
+		log.Fatalf("❌ Configuração inválida: %v", err)
 	}
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	// 2. Setup Dependencies
+	deps, err := SetupDependencies(cfg)
 	if err != nil {
-		log.Fatalf("Falha crítica ao conectar no banco: %v", err)
+		log.Fatalf("❌ Falha ao configurar dependências: %v", err)
 	}
 
-	repo := database.NewPostgresRepository(db)
-	userUseCase := usecase.NewUserUseCase(repo)
-	userHandler := http.NewUserHandler(userUseCase)
+	// 3. Setup Routes
+	router := SetupRoutes(deps)
 
-	r := gin.Default()
-
-	r.POST("/register", userHandler.Register)
-	r.POST("/login", userHandler.Login)
-
-	log.Printf("Servidor rodando na porta %s", port)
-	if err := r.Run(":" + port); err != nil {
-		log.Fatalf("Erro ao iniciar servidor: %v", err)
+	// 4. Start Server
+	log.Printf("🚀 Servidor iniciado na porta %s", cfg.Port)
+	if err := router.Run(":" + cfg.Port); err != nil {
+		log.Fatalf("❌ Erro ao iniciar servidor: %v", err)
 	}
+}
+
+func validateConfig(cfg *Config) error {
+	if cfg.DatabaseURL == "" {
+		return ErrMissingDatabaseURL
+	}
+	if cfg.JWTSecret == "" {
+		return ErrMissingJWTSecret
+	}
+	return nil
 }
