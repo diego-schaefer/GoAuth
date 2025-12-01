@@ -4,6 +4,7 @@ import (
 	"backend-go/internal/adapter/repository/postgres"
 	"backend-go/internal/domain"
 	"context"
+	"log"
 	"strings"
 
 	"gorm.io/gorm"
@@ -14,6 +15,11 @@ type PostgresRepository struct {
 }
 
 func NewPostgresRepository(db *gorm.DB) *PostgresRepository {
+	err := db.AutoMigrate(&postgres.UserGormModel{})
+	if err != nil {
+		log.Fatalf("Erro fatal ao migrar banco de dados: %v", err)
+	}
+
 	return &PostgresRepository{db: db}
 }
 
