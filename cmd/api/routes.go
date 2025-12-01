@@ -10,7 +10,7 @@ func SetupRoutes(deps *Dependencies) *gin.Engine {
 	r := gin.Default()
 
 	healthHandler := http_handler.NewHealthHandler()
-	r.GET("/health", healthHandler.Check)
+	r.GET("/", healthHandler.Check)
 
 	api := r.Group("/api/v1")
 	{
