@@ -13,9 +13,6 @@ func NewHealthHandler() *HealthHandler {
 }
 
 func (h *HealthHandler) Check(c *gin.Context) {
-	// Em Big Techs, aqui faríamos um "Ping" no banco de dados.
-	// Se o banco falhar, retornamos 500, não 200.
-
 	c.JSON(http.StatusOK, gin.H{
 		"status":  "ok",
 		"message": "GoAuth API is running smoothly",

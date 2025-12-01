@@ -22,3 +22,13 @@ func LoadConfig() *Config {
 		JWTSecret:   os.Getenv("JWT_SECRET"),
 	}
 }
+
+func validateConfig(cfg *Config) error {
+	if cfg.DatabaseURL == "" {
+		return ErrMissingDatabaseURL
+	}
+	if cfg.JWTSecret == "" {
+		return ErrMissingJWTSecret
+	}
+	return nil
+}

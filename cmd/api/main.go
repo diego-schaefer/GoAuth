@@ -27,12 +27,3 @@ func main() {
 	}
 }
 
-func validateConfig(cfg *Config) error {
-	if cfg.DatabaseURL == "" {
-		return ErrMissingDatabaseURL
-	}
-	if cfg.JWTSecret == "" {
-		return ErrMissingJWTSecret
-	}
-	return nil
-}
